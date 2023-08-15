@@ -1,6 +1,7 @@
 import { fail, type Actions, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { nanoid } from 'nanoid';
+import { z } from "zod";
 
 export const load = (async () => {
     return {};
@@ -29,32 +30,38 @@ function createSession(params: RegisterParams): string {
     return sessionID
 }
 
+const registerUserSchema = z.object({
+    username: z.string().trim().min(3, "username must be 3 characters long").max(60),
+    email: z.string().email("email is not valid"),
+    password: z.string().min(8)
+})
+
 export const actions: Actions = {
     default: async (event) => {
         console.log("register endpoint")
 
-        const data = await event.request.formData();
+        const formData = Object.fromEntries(await event.request.formData());
+        // use safeParse as it doesn't throw error
+        const parsedData = registerUserSchema.safeParse(formData);
 
+        console.log("parsed data: ", parsedData)
 
-        const email = data.get("email")?.toString();
-        const username = data.get("username")?.toString();
-        const password = data.get("password")?.toString();
+        if (!parsedData.success) {
 
-        console.log("posted form data: ", { username, email, password });
+            const errors = parsedData.error.errors.map((error) => {
+                return {
+                    field: error.path[0],
+                    message: error.message
+                };
+            });
 
-        if (typeof email === "undefined" || !email.includes("@")) {
-            return fail(400, { error: true, errors: [{ field: "email", message: "email is invalid" }] })
+            console.log("errors: ", errors)
+
+            return fail(400, { error: true, errors: errors })
         }
 
-        if (typeof username === "undefined" || username.length < 3) {
-            return fail(400, { error: true, errors: [{ field: "username", message: "username cant be less than 3 characters long" }] })
-        }
 
-        if (typeof password === "undefined" || password.length < 8) {
-            return fail(400, { error: true, errors: [{ field: "password", message: "password cant be less than 8 characters long" }] })
-        }
-
-        const params = { username: username!, email: email!, password: password! }
+        const params = { ...parsedData.data }
 
         try {
             register(params);
