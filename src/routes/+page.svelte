@@ -1,10 +1,7 @@
 <script lang="ts">
-    import { page } from "$app/stores";
+    import type { PageData } from "./$types";
 
-    console.log("page data: ", $page);
+    export let data: PageData;
 </script>
 
-<div>
-    <a href="/login">Login</a>
-    <a href="/signup">Signup</a>
-</div>
+<h1>Home page</h1>

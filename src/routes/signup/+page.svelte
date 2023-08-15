@@ -21,6 +21,7 @@
     $: onFormChange(form);
 </script>
 
+<h1>Signup page</h1>
 <form method="post" use:enhance>
     <label for="username">Username: </label>
     <input type="text" name="username" placeholder="JohnSnow" />

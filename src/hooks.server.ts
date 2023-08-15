@@ -8,8 +8,7 @@ export type Session = {
 
 async function getSession(event: RequestEvent): Promise<Session | null> {
     const sessionId = event.cookies.get("session");
-
-
+    // getting the session is not enough, we should verify it is correct
     if (!sessionId) {
         return null;
     }
@@ -25,7 +24,7 @@ async function getSession(event: RequestEvent): Promise<Session | null> {
 }
 
 export const handle: Handle = ({ event, resolve }) => {
-
+    console.log("called before request")
     event.locals.getSession = () => getSession(event);
 
     return resolve(event)
